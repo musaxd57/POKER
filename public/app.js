@@ -418,10 +418,20 @@
     }
     const sel = hand.querySelector('.card.selected');
     if (sel && sel !== el) {
-      flipReorder(hand, null, () => hand.insertBefore(sel, el));
+      // Seçili kart ile tıklanan kartı YER DEĞİŞTİR (swap)
+      flipReorder(hand, null, () => swapNodes(sel, el));
       App.workOrder = [...hand.querySelectorAll('.card')].map((c) => c.dataset.id);
     }
     clearSelection();
+  }
+
+  // İki DOM düğümünün yerini güvenli şekilde değiştirir.
+  function swapNodes(a, b) {
+    const parent = a.parentNode;
+    const marker = document.createComment('swap');
+    parent.replaceChild(marker, a);
+    parent.replaceChild(a, b);
+    parent.replaceChild(b, marker);
   }
 
   function clearSelection() {

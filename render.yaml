@@ -1,0 +1,11 @@
+# Render.com için tek-tık dağıtım yapılandırması (Blueprint)
+# https://render.com -> New + -> Blueprint -> bu repoyu seç
+services:
+  - type: web
+    name: papaz-kacti
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    autoDeploy: true
+    healthCheckPath: /

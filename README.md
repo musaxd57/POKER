@@ -32,6 +32,36 @@ Ardından tarayıcıdan **http://localhost:3000** adresini aç.
 > sunucunun erişilebilir bir adreste (ör. bir host/sunucu) çalışıyor olması gerekir.
 > İstenirse `PORT` ortam değişkeni ile port değiştirilebilir.
 
+## İnternette Yayınlama (herkes oynasın)
+
+Online mod WebSocket kullandığı için **kalıcı bağlantı destekleyen** bir host gerekir
+(salt-statik GitHub Pages/Vercel tek başına yetmez). İki yol var:
+
+### A) Hızlı & geçici — arkadaşlarla hemen oynamak için (tünel)
+Kendi bilgisayarında `npm start` çalışırken, ayrı bir terminalde:
+
+```bash
+# cloudflared (kurulumsuz, ücretsiz)
+cloudflared tunnel --url http://localhost:3000
+# veya ngrok
+ngrok http 3000
+```
+
+Çıkan `https://...` adresini paylaş. Sayfa HTTPS olduğu için online mod
+otomatik olarak güvenli WebSocket (wss) kullanır. Sen kapatınca link ölür.
+
+### B) Kalıcı — 7/24 herkese açık (Render.com, ücretsiz)
+1. Kodu GitHub'a gönder (zaten burada).
+2. https://render.com → hesap aç → **New + → Blueprint** → bu repoyu seç
+   (repodaki `render.yaml` otomatik okunur), ya da **New Web Service**:
+   - Build Command: `npm install`
+   - Start Command: `npm start`
+3. Render sana `https://papaz-kacti-xxxx.onrender.com` gibi herkese açık bir
+   adres verir. Bağlantıyı paylaş, herkes oynasın.
+
+> Ücretsiz planda servis bir süre işlem olmazsa uykuya geçer; ilk açılış
+> ~30 sn sürebilir, sonra normaldir. Sunucu `PORT` ortam değişkenini otomatik kullanır.
+
 ## Proje Yapısı
 
 ```
