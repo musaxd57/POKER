@@ -56,6 +56,7 @@
     ws: null,          // online modunda WebSocket
     lastShownMove: -1, // animasyon tekrarını önler
     workOrder: null,   // dizme aşamasında çalışılan sıra (id dizisi)
+    selectedId: null,  // tıkla-yerleştir için seçili kart
     arrangeMode: false,
     newGameDeal: false,
     aiTimers: [],
@@ -85,14 +86,46 @@
     return h('div', 'corner ' + pos, `<span class="rk">${rank}</span><span class="su">${sym}</span>`);
   }
 
+  // Gerçek iskambil joker'ine benzeyen çizimli soytarı (jester).
+  function jokerArt() {
+    return `<svg class="joker-svg" viewBox="0 0 64 92" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+      <!-- şapka uçları -->
+      <path d="M16 15 L20 38 L29 37 Z" fill="#ef4444"/>
+      <path d="M32 11 L28 38 L36 38 Z" fill="#8b5cf6"/>
+      <path d="M48 15 L35 37 L44 38 Z" fill="#14b8a6"/>
+      <!-- çanlar -->
+      <circle cx="16" cy="14" r="3.2" fill="#fbbf24" stroke="#b45309" stroke-width=".6"/>
+      <circle cx="32" cy="10" r="3.2" fill="#fbbf24" stroke="#b45309" stroke-width=".6"/>
+      <circle cx="48" cy="14" r="3.2" fill="#fbbf24" stroke="#b45309" stroke-width=".6"/>
+      <!-- yüz -->
+      <circle cx="32" cy="47" r="12" fill="#ffe2c0" stroke="#e0b68a" stroke-width="1"/>
+      <!-- alın bandı -->
+      <path d="M20 40 Q32 32 44 40 Q32 45 20 40 Z" fill="#1f2937"/>
+      <!-- gözler -->
+      <circle cx="28" cy="46" r="1.7" fill="#1f2937"/>
+      <circle cx="36" cy="46" r="1.7" fill="#1f2937"/>
+      <!-- yanaklar -->
+      <circle cx="25.5" cy="50.5" r="2" fill="#fb7185" opacity=".55"/>
+      <circle cx="38.5" cy="50.5" r="2" fill="#fb7185" opacity=".55"/>
+      <!-- gülümseme -->
+      <path d="M27 51 Q32 56.5 37 51" fill="none" stroke="#b45309" stroke-width="1.6" stroke-linecap="round"/>
+      <!-- fırfır yaka -->
+      <path d="M16 60 Q20.5 70 25 61 Q28.5 70 32 61 Q35.5 70 39 61 Q43.5 70 48 60 L48 58 L16 58 Z" fill="#fbbf24" stroke="#b45309" stroke-width=".8"/>
+      <!-- yaka ponponu -->
+      <circle cx="32" cy="66" r="2.6" fill="#ef4444" stroke="#b45309" stroke-width=".5"/>
+      <!-- köşe işaretleri -->
+      <text x="5" y="13" font-size="8" font-weight="900" fill="#7c3aed" font-family="sans-serif">J</text>
+      <g transform="rotate(180 59 80)"><text x="59" y="80" font-size="8" font-weight="900" fill="#7c3aed" font-family="sans-serif">J</text></g>
+      <!-- JOKER yazısı -->
+      <text x="32" y="81" font-size="7.5" font-weight="900" fill="#7c3aed" text-anchor="middle" font-family="sans-serif" letter-spacing="1.2">JOKER</text>
+    </svg>`;
+  }
+
   function cardFace(card) {
-    // Joker: özel renkli tasarım
+    // Joker: çizimli soytarı tasarımı
     if (card.joker) {
       const face = h('div', 'card-face joker');
-      face.appendChild(h('div', 'joker-corner tl', '★'));
-      face.appendChild(h('div', 'joker-fig', '🃏'));
-      face.appendChild(h('div', 'joker-text', 'JOKER'));
-      face.appendChild(h('div', 'joker-corner br', '★'));
+      face.innerHTML = jokerArt();
       return face;
     }
 
@@ -196,6 +229,7 @@
     });
     if (App.arrangeMode) {
       App.workOrder = (me.hand || []).map((c) => c.id);
+      App.selectedId = null;
     }
     App.newGameDeal = false;
 
@@ -270,7 +304,8 @@
   // =========================================================================
   // DİZME (ARRANGE) — pürüzsüz (FLIP animasyonlu) sürükle-bırak
   // =========================================================================
-  let drag = null; // { el, pointerId, grabX, grabY }
+  let drag = null; // { el, pointerId, grabX, grabY, startX, startY, moved }
+  const TAP_THRESHOLD = 8; // bu kadar pikselden az hareket = tıklama
 
   function attachDrag(el) {
     el.addEventListener('pointerdown', onDragStart);
@@ -281,17 +316,28 @@
     const el = e.currentTarget;
     el.setPointerCapture(e.pointerId);
     const r = el.getBoundingClientRect();
-    drag = { el, pointerId: e.pointerId, grabX: e.clientX - r.left, grabY: e.clientY - r.top };
-    el.classList.add('lifted');
-    el.style.transition = 'none';
-    el.style.zIndex = '100';
-    document.body.classList.add('dragging-active');
+    drag = {
+      el, pointerId: e.pointerId,
+      grabX: e.clientX - r.left, grabY: e.clientY - r.top,
+      startX: e.clientX, startY: e.clientY, moved: false,
+    };
     e.preventDefault();
   }
 
   function onDragMove(e) {
     if (!drag || e.pointerId !== drag.pointerId) return;
     const el = drag.el;
+
+    // Eşik aşılana kadar tıklama say (sürükleme başlatma)
+    if (!drag.moved) {
+      if (Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) < TAP_THRESHOLD) return;
+      drag.moved = true;
+      el.classList.add('lifted');
+      el.classList.remove('selected');
+      el.style.transition = 'none';
+      el.style.zIndex = '100';
+      document.body.classList.add('dragging-active');
+    }
 
     // Kartı imlecin/parmağın altına yapışık tut (layout konumuna göre çevir)
     el.style.transform = '';
@@ -344,13 +390,43 @@
   function onDragEnd(e) {
     if (!drag || e.pointerId !== drag.pointerId) return;
     const el = drag.el;
-    el.classList.remove('lifted');
-    el.style.transition = 'transform .22s cubic-bezier(.2,.9,.25,1)';
-    el.style.transform = ''; // yerine yumuşakça otur
-    setTimeout(() => { el.style.transition = ''; el.style.zIndex = ''; }, 240);
+    const wasTap = !drag.moved && e.type === 'pointerup';
+
+    if (drag.moved) {
+      el.classList.remove('lifted');
+      el.style.transition = 'transform .22s cubic-bezier(.2,.9,.25,1)';
+      el.style.transform = ''; // yerine yumuşakça otur
+      setTimeout(() => { el.style.transition = ''; el.style.zIndex = ''; }, 240);
+      document.body.classList.remove('dragging-active');
+      App.workOrder = [...$('you-hand').querySelectorAll('.card')].map((c) => c.dataset.id);
+    }
     drag = null;
-    document.body.classList.remove('dragging-active');
-    App.workOrder = [...$('you-hand').querySelectorAll('.card')].map((c) => c.dataset.id);
+    if (wasTap) handleTap(el);
+  }
+
+  // Tıkla-yerleştir: bir kartı seç, sonra başka karta tıkla -> seçilen kart oraya taşınır.
+  function handleTap(el) {
+    const hand = $('you-hand');
+    if (!App.selectedId) {
+      App.selectedId = el.dataset.id;
+      el.classList.add('selected');
+      return;
+    }
+    if (App.selectedId === el.dataset.id) {
+      clearSelection(); // aynı karta tekrar -> seçimi bırak
+      return;
+    }
+    const sel = hand.querySelector('.card.selected');
+    if (sel && sel !== el) {
+      flipReorder(hand, null, () => hand.insertBefore(sel, el));
+      App.workOrder = [...hand.querySelectorAll('.card')].map((c) => c.dataset.id);
+    }
+    clearSelection();
+  }
+
+  function clearSelection() {
+    App.selectedId = null;
+    document.querySelectorAll('#you-hand .card.selected').forEach((c) => c.classList.remove('selected'));
   }
 
   document.addEventListener('pointermove', onDragMove, { passive: false });
