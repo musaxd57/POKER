@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0b1020" />
+  <title>Papaz Kaçtı</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="/public/styles.css" />
+</head>
+<body>
+  <div id="app">
+
+    <!-- ================= ANA MENÜ ================= -->
+    <section id="screen-menu" class="screen active">
+      <div class="menu-card">
+        <div class="logo">
+          <span class="logo-suit s-spade">♠</span>
+          <span class="logo-suit s-heart">♥</span>
+          <h1>Papaz&nbsp;Kaçtı</h1>
+          <span class="logo-suit s-diamond">♦</span>
+          <span class="logo-suit s-club">♣</span>
+        </div>
+        <p class="tagline">Papaz kimde kalırsa kaybeder. Blöfle, kandır, papazı yıka! 😈</p>
+
+        <label class="field">
+          <span>Adın</span>
+          <input id="player-name" type="text" maxlength="16" placeholder="Oyuncu" autocomplete="off" />
+        </label>
+
+        <button id="btn-cpu" class="btn btn-primary">🤖 Bilgisayara Karşı</button>
+        <button id="btn-online" class="btn btn-secondary">🌐 Online Oyun</button>
+
+        <button id="btn-rules" class="btn btn-ghost">📖 Nasıl Oynanır?</button>
+      </div>
+    </section>
+
+    <!-- ================= ONLINE LOBİ ================= -->
+    <section id="screen-online" class="screen">
+      <div class="menu-card">
+        <h2>🌐 Online Oyun</h2>
+
+        <div class="online-actions">
+          <button id="btn-create" class="btn btn-primary">➕ Oda Kur</button>
+          <div class="divider"><span>veya</span></div>
+          <div class="join-row">
+            <input id="join-code" type="text" maxlength="5" placeholder="ODA KODU" autocomplete="off" />
+            <button id="btn-join" class="btn btn-secondary">Katıl</button>
+          </div>
+        </div>
+
+        <div id="lobby-status" class="lobby-status hidden">
+          <p id="lobby-msg">Oda kuruluyor...</p>
+          <div id="code-box" class="code-box hidden">
+            <span class="code-label">Oda Kodu</span>
+            <span id="room-code" class="room-code">-----</span>
+            <button id="btn-copy" class="btn btn-ghost small">📋 Kodu Kopyala</button>
+          </div>
+          <div class="spinner" id="lobby-spinner"></div>
+        </div>
+
+        <button id="btn-back-menu" class="btn btn-ghost">← Geri</button>
+      </div>
+    </section>
+
+    <!-- ================= OYUN MASASI ================= -->
+    <section id="screen-game" class="screen">
+      <!-- Rakip alanı -->
+      <div class="seat seat-opponent">
+        <div class="seat-info">
+          <span class="avatar" id="opp-avatar">🙂</span>
+          <span class="seat-name" id="opp-name">Rakip</span>
+          <span class="card-count" id="opp-count">0</span>
+        </div>
+        <div class="hand hand-opponent" id="opp-hand"></div>
+        <div class="melds" id="opp-melds"></div>
+      </div>
+
+      <!-- Masa ortası -->
+      <div class="table-center">
+        <div class="announce" id="announce">Oyun başlıyor...</div>
+        <div class="reveal-slot" id="reveal-slot"></div>
+      </div>
+
+      <!-- Oyuncu alanı -->
+      <div class="seat seat-player">
+        <div class="melds" id="you-melds"></div>
+        <div class="hand hand-player" id="you-hand"></div>
+        <div class="seat-info">
+          <span class="avatar" id="you-avatar">😎</span>
+          <span class="seat-name" id="you-name">Sen</span>
+          <span class="card-count" id="you-count">0</span>
+        </div>
+      </div>
+
+      <!-- Aksiyon çubuğu -->
+      <div class="action-bar" id="action-bar">
+        <button id="btn-shuffle" class="btn btn-ghost small">🔀 Karıştır</button>
+        <button id="btn-ready" class="btn btn-primary">✅ Hazırım</button>
+      </div>
+
+      <button id="btn-quit" class="btn btn-ghost small quit-btn">✕ Çık</button>
+    </section>
+
+    <!-- ================= OYUN SONU ================= -->
+    <div id="overlay-end" class="overlay">
+      <div class="end-card">
+        <div id="end-emoji" class="end-emoji">🏆</div>
+        <h2 id="end-title">Kazandın!</h2>
+        <p id="end-sub"></p>
+        <button id="btn-rematch" class="btn btn-primary">🔁 Tekrar Oyna</button>
+        <button id="btn-end-menu" class="btn btn-ghost">🏠 Ana Menü</button>
+      </div>
+    </div>
+
+    <!-- ================= KURALLAR ================= -->
+    <div id="overlay-rules" class="overlay">
+      <div class="rules-card">
+        <h2>📖 Papaz Kaçtı — Kurallar</h2>
+        <ul>
+          <li>Destede 4 papazdan (♠♥♦♣ Papaz) <b>sadece 1 tanesi</b> kalır: <b>kaçan papaz</b>.</li>
+          <li>49 kart iki oyuncuya dağıtılır.</li>
+          <li>Elinde <b>aynı değerden</b> iki kart olan (renk fark etmez) bunları açıp atar.</li>
+          <li>Sırayla rakibinin <b>kapalı</b> kartlarından birini çekersin. Eş olursa atılır.</li>
+          <li><b>Savunan</b> oyuncu kartlarını dizip papazı istediği yere saklayabilir — <i>blöf!</i></li>
+          <li>Tek papaz dışında tüm kartlar bitince, <b>elinde papaz kalan kaybeder.</b></li>
+        </ul>
+        <button id="btn-close-rules" class="btn btn-primary">Anladım</button>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast"></div>
+  </div>
+
+  <script src="/src/game-engine.js"></script>
+  <script src="/src/ai.js"></script>
+  <script src="/public/app.js"></script>
+</body>
+</html>
