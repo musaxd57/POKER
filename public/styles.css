@@ -1,0 +1,296 @@
+/* ============================================================
+   Papaz Kaçtı — Stiller
+   Modern, koyu temalı, neon vurgulu, cam efektli arayüz.
+   ============================================================ */
+
+:root {
+  --bg-0: #0b1020;
+  --bg-1: #131a33;
+  --felt-0: #0e3b2e;
+  --felt-1: #155c43;
+  --neon: #5eead4;
+  --neon-2: #a78bfa;
+  --gold: #fbbf24;
+  --red: #f43f5e;
+  --text: #e8edf7;
+  --text-dim: #97a3c2;
+  --glass: rgba(255, 255, 255, 0.06);
+  --glass-brd: rgba(255, 255, 255, 0.12);
+  --card-w: 64px;
+  --card-h: 92px;
+  --radius: 16px;
+  --font: "Trebuchet MS", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  height: 100%;
+  font-family: var(--font);
+  color: var(--text);
+  background:
+    radial-gradient(1200px 800px at 50% -10%, #1b2450 0%, transparent 60%),
+    linear-gradient(160deg, var(--bg-0), var(--bg-1));
+  overflow: hidden;
+  user-select: none;
+}
+
+#app { position: relative; height: 100%; width: 100%; }
+
+/* ---------- Ekran geçişleri ---------- */
+.screen {
+  position: absolute; inset: 0;
+  display: none;
+  align-items: center; justify-content: center;
+  padding: 16px;
+  animation: fade .35s ease;
+}
+.screen.active { display: flex; }
+@keyframes fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* ---------- Menü kartı ---------- */
+.menu-card {
+  width: min(420px, 94vw);
+  background: var(--glass);
+  border: 1px solid var(--glass-brd);
+  border-radius: 24px;
+  backdrop-filter: blur(14px);
+  padding: 28px 24px;
+  box-shadow: 0 30px 80px rgba(0,0,0,.5);
+  display: flex; flex-direction: column; gap: 14px;
+  text-align: center;
+}
+
+.logo { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.logo h1 {
+  font-size: clamp(28px, 8vw, 44px);
+  letter-spacing: 1px;
+  background: linear-gradient(90deg, var(--neon), var(--neon-2));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  text-shadow: 0 0 30px rgba(94,234,212,.25);
+}
+.logo-suit { font-size: clamp(20px, 6vw, 30px); animation: bob 3s ease-in-out infinite; }
+.logo-suit:nth-child(2){ animation-delay:.3s } .logo-suit:nth-child(4){ animation-delay:.6s } .logo-suit:nth-child(5){ animation-delay:.9s }
+.s-spade, .s-club { color: #cbd5e1; }
+.s-heart, .s-diamond { color: var(--red); }
+@keyframes bob { 0%,100%{ transform: translateY(0) } 50%{ transform: translateY(-6px) } }
+
+.tagline { color: var(--text-dim); font-size: 14px; line-height: 1.5; margin-bottom: 6px; }
+
+.field { display: flex; flex-direction: column; gap: 6px; text-align: left; }
+.field span { font-size: 12px; color: var(--text-dim); padding-left: 4px; }
+input[type=text] {
+  width: 100%;
+  background: rgba(0,0,0,.3);
+  border: 1px solid var(--glass-brd);
+  color: var(--text);
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 16px; font-family: var(--font);
+  outline: none; transition: border .2s, box-shadow .2s;
+}
+input[type=text]:focus { border-color: var(--neon); box-shadow: 0 0 0 3px rgba(94,234,212,.18); }
+
+/* ---------- Butonlar ---------- */
+.btn {
+  border: none; cursor: pointer;
+  font-family: var(--font); font-size: 16px; font-weight: 600;
+  padding: 13px 18px; border-radius: 14px;
+  color: var(--text);
+  transition: transform .12s ease, box-shadow .2s, filter .2s, background .2s;
+}
+.btn:active { transform: scale(.96); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn-primary { background: linear-gradient(135deg, var(--neon), #2dd4bf); color: #062925; box-shadow: 0 10px 30px rgba(45,212,191,.3); }
+.btn-primary:hover { filter: brightness(1.08); }
+.btn-secondary { background: linear-gradient(135deg, var(--neon-2), #7c3aed); box-shadow: 0 10px 30px rgba(124,58,237,.3); }
+.btn-secondary:hover { filter: brightness(1.1); }
+.btn-ghost { background: var(--glass); border: 1px solid var(--glass-brd); }
+.btn-ghost:hover { background: rgba(255,255,255,.12); }
+.btn.small { padding: 9px 14px; font-size: 14px; }
+
+/* ---------- Online lobi ---------- */
+.menu-card h2 { font-size: 22px; }
+.online-actions { display: flex; flex-direction: column; gap: 14px; }
+.divider { display: flex; align-items: center; gap: 10px; color: var(--text-dim); font-size: 12px; }
+.divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: var(--glass-brd); }
+.join-row { display: flex; gap: 8px; }
+.join-row input { text-transform: uppercase; letter-spacing: 4px; text-align: center; font-weight: 700; }
+.join-row .btn { white-space: nowrap; }
+
+.lobby-status { margin-top: 6px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.code-box {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  background: rgba(0,0,0,.3); border: 1px dashed var(--neon);
+  border-radius: 16px; padding: 16px 22px; width: 100%;
+}
+.code-label { font-size: 12px; color: var(--text-dim); }
+.room-code { font-size: 40px; font-weight: 800; letter-spacing: 8px; color: var(--gold); text-shadow: 0 0 24px rgba(251,191,36,.4); }
+.spinner {
+  width: 34px; height: 34px; border-radius: 50%;
+  border: 3px solid var(--glass-brd); border-top-color: var(--neon);
+  animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.hidden { display: none !important; }
+
+/* ============================================================
+   OYUN MASASI
+   ============================================================ */
+#screen-game {
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 12px 10px;
+  background:
+    radial-gradient(900px 600px at 50% 40%, var(--felt-1) 0%, var(--felt-0) 55%, #06231a 100%);
+}
+
+.seat { width: 100%; max-width: 760px; display: flex; flex-direction: column; gap: 8px; align-items: center; }
+.seat-opponent { transform: scale(1); }
+
+.seat-info { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+.avatar { font-size: 22px; filter: drop-shadow(0 2px 4px rgba(0,0,0,.4)); }
+.seat-name { font-weight: 700; }
+.card-count {
+  background: rgba(0,0,0,.35); border: 1px solid var(--glass-brd);
+  border-radius: 999px; padding: 2px 10px; font-size: 12px; color: var(--text-dim);
+}
+.seat-active .card-count { border-color: var(--neon); color: var(--neon); box-shadow: 0 0 12px rgba(94,234,212,.4); }
+
+/* ---------- Eller ---------- */
+.hand { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; min-height: var(--card-h); padding: 4px; }
+.hand-opponent { perspective: 800px; }
+
+/* ---------- Kart ---------- */
+.card {
+  width: var(--card-w); height: var(--card-h);
+  border-radius: 9px; position: relative;
+  flex: 0 0 auto;
+  transition: transform .18s ease, box-shadow .2s, opacity .3s;
+  box-shadow: 0 6px 14px rgba(0,0,0,.35);
+}
+.card-face {
+  width: 100%; height: 100%; border-radius: 9px;
+  background: linear-gradient(160deg, #ffffff, #e9eef7);
+  color: #0b1020; position: relative; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid rgba(0,0,0,.12);
+}
+.card-face.red { color: var(--red); }
+.card-face .corner { position: absolute; font-weight: 800; line-height: 1; text-align: center; }
+.card-face .corner.tl { top: 5px; left: 6px; }
+.card-face .corner.br { bottom: 5px; right: 6px; transform: rotate(180deg); }
+.card-face .corner .rk { font-size: 14px; display: block; }
+.card-face .corner .su { font-size: 12px; display: block; }
+.card-face .pip { font-size: 30px; }
+
+/* Kart arkası (kapalı) */
+.card-back {
+  width: 100%; height: 100%; border-radius: 9px;
+  background:
+    repeating-linear-gradient(45deg, #1e293b 0 6px, #243049 6px 12px),
+    linear-gradient(135deg, #312e81, #1e293b);
+  border: 2px solid rgba(255,255,255,.14);
+  display: flex; align-items: center; justify-content: center;
+}
+.card-back::after { content: "♠"; font-size: 26px; color: rgba(255,255,255,.22); }
+
+/* Papaz (kaçan papaz) — sahibine özel altın vurgu */
+.card-face.papaz { background: linear-gradient(160deg, #fff7e0, #ffe9a8); box-shadow: inset 0 0 0 2px var(--gold); }
+.card-face.papaz .pip::after { content: " 👑"; }
+
+/* Etkileşim durumları */
+.card.selectable .card-back { cursor: pointer; }
+.card.selectable:hover { transform: translateY(-10px); }
+.card.selectable:hover .card-back { border-color: var(--neon); box-shadow: 0 0 18px rgba(94,234,212,.5); }
+.card.draggable { cursor: grab; }
+.card.dragging { opacity: .35; }
+.card.lifted { transform: translateY(-12px); box-shadow: 0 14px 28px rgba(0,0,0,.5); z-index: 5; }
+.card.dealing { animation: dealIn .4s ease both; }
+@keyframes dealIn { from { transform: translateY(-40px) scale(.7); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* ---------- Açılan çiftler (melds) ---------- */
+.melds { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; min-height: 26px; }
+.meld {
+  display: flex; gap: -6px;
+  background: rgba(0,0,0,.25); border-radius: 8px; padding: 3px 7px;
+  font-size: 13px; font-weight: 700; color: #fff;
+}
+.meld .m-card { padding: 0 2px; }
+.meld .m-card.red { color: #fda4af; }
+
+/* ---------- Masa ortası ---------- */
+.table-center {
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  min-height: 110px; justify-content: center; width: 100%;
+}
+.announce {
+  font-size: clamp(15px, 4vw, 19px); font-weight: 700; text-align: center;
+  padding: 8px 18px; border-radius: 999px;
+  background: rgba(0,0,0,.3); border: 1px solid var(--glass-brd);
+  max-width: 90vw; transition: all .2s;
+}
+.announce.alert { border-color: var(--neon); color: var(--neon); box-shadow: 0 0 24px rgba(94,234,212,.35); }
+.announce.danger { border-color: var(--red); color: #fda4af; box-shadow: 0 0 24px rgba(244,63,94,.35); }
+
+.reveal-slot { height: var(--card-h); display: flex; align-items: center; justify-content: center; }
+.reveal-slot .card { animation: revealFlip .6s ease both; }
+@keyframes revealFlip {
+  0% { transform: rotateY(90deg) scale(.8); opacity: 0; }
+  60% { transform: rotateY(0) scale(1.15); opacity: 1; }
+  100% { transform: rotateY(0) scale(1); }
+}
+
+/* ---------- Aksiyon çubuğu ---------- */
+.action-bar {
+  display: flex; gap: 10px; justify-content: center; align-items: center;
+  padding: 8px; min-height: 40px;
+}
+.action-bar.hidden { display: none; }
+
+.quit-btn { position: absolute; top: 12px; right: 12px; }
+
+/* ============================================================
+   OVERLAY (oyun sonu + kurallar)
+   ============================================================ */
+.overlay {
+  position: absolute; inset: 0;
+  display: none; align-items: center; justify-content: center;
+  background: rgba(5, 8, 18, .7); backdrop-filter: blur(6px);
+  z-index: 50; padding: 16px;
+}
+.overlay.show { display: flex; animation: fade .3s ease; }
+.end-card, .rules-card {
+  width: min(420px, 94vw);
+  background: var(--glass); border: 1px solid var(--glass-brd);
+  border-radius: 24px; padding: 28px 24px; text-align: center;
+  display: flex; flex-direction: column; gap: 14px;
+  box-shadow: 0 30px 80px rgba(0,0,0,.6);
+}
+.end-emoji { font-size: 64px; animation: pop .5s ease; }
+@keyframes pop { 0% { transform: scale(0); } 70% { transform: scale(1.25); } 100% { transform: scale(1); } }
+#end-title { font-size: 28px; }
+#end-sub { color: var(--text-dim); }
+
+.rules-card { text-align: left; }
+.rules-card h2 { text-align: center; }
+.rules-card ul { display: flex; flex-direction: column; gap: 10px; padding-left: 18px; font-size: 14px; line-height: 1.5; color: var(--text); }
+.rules-card li b { color: var(--neon); }
+
+/* ---------- Toast ---------- */
+.toast {
+  position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: rgba(0,0,0,.85); border: 1px solid var(--glass-brd);
+  padding: 10px 18px; border-radius: 12px; font-size: 14px;
+  opacity: 0; pointer-events: none; transition: all .3s; z-index: 80; max-width: 90vw; text-align: center;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ---------- Duyarlı ölçüler ---------- */
+@media (max-width: 480px) {
+  :root { --card-w: 52px; --card-h: 74px; }
+  .hand { gap: 4px; }
+}
+@media (min-width: 900px) {
+  :root { --card-w: 72px; --card-h: 104px; }
+}
