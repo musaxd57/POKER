@@ -5,12 +5,12 @@
 
 ## Oyun Nasıl Oynanır?
 
-- Destedeki 4 papazdan (King) sadece **1 tanesi** kalır: *kaçan papaz* (♠ Papaz).
-- 49 kart iki oyuncuya dağıtılır.
+- Destede eşi olmayan tek bir **🃏 Joker** vardır: *kaçan joker*.
+- 52 kart + 1 joker (toplam 53) iki oyuncuya dağıtılır.
 - Elinde **aynı değerden** iki kart olan (renk/sembol fark etmez) bunları açıp atar.
 - Sırayla, rakibinin **kapalı** kartlarından birini çekersin. Eş olursa açılıp atılır.
-- **Savunan** oyuncu kartlarını dizip papazı istediği yere saklayabilir → *blöf!*
-- Tek papaz dışında tüm kartlar bitince, **elinde papaz kalan kaybeder.**
+- **Savunan** oyuncu kartlarını dizip joker'i istediği yere saklayabilir → *blöf!*
+- Joker dışında tüm kartlar bitince, **elinde joker kalan kaybeder.**
 
 ## Çalıştırma
 

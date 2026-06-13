@@ -12,10 +12,25 @@
 
   const Engine = window.GameEngine;
   const AI = window.GameAI;
-  const PAPAZ = Engine.PAPAZ_ID;
+  const JOKER = Engine.JOKER_ID;
 
   const SUIT_SYM = { S: '♠', H: '♥', D: '♦', C: '♣' };
   const SUIT_RED = { H: true, D: true };
+  const FACE_EMOJI = { J: '🤴', Q: '👸', K: '👑' };
+
+  // Sayı kartları için pip (sembol) konumları: [x%, y%, ters mi?]
+  const PIP_LAYOUTS = {
+    'A':  [[50, 50, 0]],
+    '2':  [[50, 16, 0], [50, 84, 1]],
+    '3':  [[50, 16, 0], [50, 50, 0], [50, 84, 1]],
+    '4':  [[30, 16, 0], [70, 16, 0], [30, 84, 1], [70, 84, 1]],
+    '5':  [[30, 16, 0], [70, 16, 0], [50, 50, 0], [30, 84, 1], [70, 84, 1]],
+    '6':  [[30, 16, 0], [70, 16, 0], [30, 50, 0], [70, 50, 0], [30, 84, 1], [70, 84, 1]],
+    '7':  [[30, 16, 0], [70, 16, 0], [50, 32, 0], [30, 50, 0], [70, 50, 0], [30, 84, 1], [70, 84, 1]],
+    '8':  [[30, 16, 0], [70, 16, 0], [50, 32, 0], [30, 50, 0], [70, 50, 0], [50, 68, 1], [30, 84, 1], [70, 84, 1]],
+    '9':  [[30, 14, 0], [70, 14, 0], [30, 38, 0], [70, 38, 0], [50, 50, 0], [30, 62, 1], [70, 62, 1], [30, 86, 1], [70, 86, 1]],
+    '10': [[30, 14, 0], [70, 14, 0], [50, 27, 0], [30, 40, 0], [70, 40, 0], [30, 60, 1], [70, 60, 1], [50, 73, 1], [30, 86, 1], [70, 86, 1]],
+  };
 
   // -------------------------------------------------------------------------
   // Kısa DOM yardımcıları
@@ -66,14 +81,44 @@
   // =========================================================================
   // KART ÇİZİMİ
   // =========================================================================
+  function cornerEl(pos, rank, sym) {
+    return h('div', 'corner ' + pos, `<span class="rk">${rank}</span><span class="su">${sym}</span>`);
+  }
+
   function cardFace(card) {
+    // Joker: özel renkli tasarım
+    if (card.joker) {
+      const face = h('div', 'card-face joker');
+      face.appendChild(h('div', 'joker-corner tl', '★'));
+      face.appendChild(h('div', 'joker-fig', '🃏'));
+      face.appendChild(h('div', 'joker-text', 'JOKER'));
+      face.appendChild(h('div', 'joker-corner br', '★'));
+      return face;
+    }
+
     const red = SUIT_RED[card.suit] ? ' red' : '';
-    const isPapaz = card.id === PAPAZ ? ' papaz' : '';
     const sym = SUIT_SYM[card.suit];
-    const face = h('div', 'card-face' + red + isPapaz);
-    face.appendChild(h('div', 'corner tl', `<span class="rk">${card.rank}</span><span class="su">${sym}</span>`));
-    face.appendChild(h('div', 'pip', sym));
-    face.appendChild(h('div', 'corner br', `<span class="rk">${card.rank}</span><span class="su">${sym}</span>`));
+    const face = h('div', 'card-face' + red);
+    face.appendChild(cornerEl('tl', card.rank, sym));
+    face.appendChild(cornerEl('br', card.rank, sym));
+
+    if (PIP_LAYOUTS[card.rank]) {
+      // Sayı kartları (A, 2–10): gerçek pip dizilimi
+      const area = h('div', 'pip-area');
+      PIP_LAYOUTS[card.rank].forEach(([x, y, flip]) => {
+        const p = h('div', 'pip-s' + (flip ? ' flip' : ''), sym);
+        p.style.left = x + '%';
+        p.style.top = y + '%';
+        area.appendChild(p);
+      });
+      face.appendChild(area);
+    } else {
+      // Figür kartları (J, Q, K)
+      const art = h('div', 'face-art');
+      art.appendChild(h('div', 'face-emoji', FACE_EMOJI[card.rank] || ''));
+      art.appendChild(h('div', 'face-suit', sym));
+      face.appendChild(art);
+    }
     return face;
   }
 
@@ -182,7 +227,7 @@
     const oppName = view.players[1 - you].name || App.oppName;
     if (view.phase === 'arrange') {
       if (view.defender === you) {
-        a.textContent = '🃏 Kartlarını diz, papazı sakla — hazır olunca onayla!';
+        a.textContent = "🃏 Kartlarını diz, joker'i sakla — hazır olunca onayla!";
         a.classList.add('alert');
       } else {
         a.textContent = `${oppName} kartlarını diziyor...`;
@@ -212,8 +257,8 @@
     // Mesaj
     const youDrew = ev.attacker === view.you;
     let msg;
-    if (ev.wasPapaz) {
-      msg = youDrew ? '😱 Papazı çektin! Dikkatli ol...' : '😈 Papaz rakibe gitti!';
+    if (ev.wasJoker) {
+      msg = youDrew ? '🃏 Joker sana geldi! Dikkatli ol...' : '😈 Joker rakibe gitti!';
     } else if (ev.type === 'paired') {
       msg = youDrew ? `✅ Eş buldun: ${ev.drawn.rank} atıldı!` : `${view.players[1 - view.you].name || App.oppName} eş buldu.`;
     } else {
@@ -223,61 +268,107 @@
   }
 
   // =========================================================================
-  // DİZME (ARRANGE) — sürükle-bırak yeniden sıralama
+  // DİZME (ARRANGE) — pürüzsüz (FLIP animasyonlu) sürükle-bırak
   // =========================================================================
-  let dragEl = null;
+  let drag = null; // { el, pointerId, grabX, grabY }
 
   function attachDrag(el) {
-    el.addEventListener('pointerdown', (e) => {
-      if (!App.arrangeMode) return;
-      dragEl = el;
-      el.classList.add('lifted');
-      el.setPointerCapture(e.pointerId);
-    });
+    el.addEventListener('pointerdown', onDragStart);
   }
 
-  document.addEventListener('pointermove', (e) => {
-    if (!dragEl) return;
+  function onDragStart(e) {
+    if (!App.arrangeMode) return;
+    const el = e.currentTarget;
+    el.setPointerCapture(e.pointerId);
+    const r = el.getBoundingClientRect();
+    drag = { el, pointerId: e.pointerId, grabX: e.clientX - r.left, grabY: e.clientY - r.top };
+    el.classList.add('lifted');
+    el.style.transition = 'none';
+    el.style.zIndex = '100';
+    document.body.classList.add('dragging-active');
+    e.preventDefault();
+  }
+
+  function onDragMove(e) {
+    if (!drag || e.pointerId !== drag.pointerId) return;
+    const el = drag.el;
+
+    // Kartı imlecin/parmağın altına yapışık tut (layout konumuna göre çevir)
+    el.style.transform = '';
+    const home = el.getBoundingClientRect();
+    const tx = e.clientX - home.left - drag.grabX;
+    const ty = e.clientY - home.top - drag.grabY;
+    el.style.transform = `translate(${tx}px, ${ty}px) scale(1.08) rotate(2deg)`;
+
+    // En yakın kartı bul, ondan önce mi sonra mı?
     const hand = $('you-hand');
-    const cards = [...hand.querySelectorAll('.card')];
-    let placed = false;
-    for (const c of cards) {
-      if (c === dragEl) continue;
+    const others = [...hand.querySelectorAll('.card')].filter((c) => c !== el);
+    let closest = null, best = Infinity;
+    for (const c of others) {
       const r = c.getBoundingClientRect();
-      if (e.clientY < r.bottom && e.clientX < r.left + r.width / 2) {
-        hand.insertBefore(dragEl, c);
-        placed = true;
-        break;
+      const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+      const d = (e.clientX - cx) ** 2 + (e.clientY - cy) ** 2;
+      if (d < best) { best = d; closest = c; }
+    }
+    if (!closest) return;
+    const cr = closest.getBoundingClientRect();
+    const before = e.clientX < cr.left + cr.width / 2;
+    const ref = before ? closest : closest.nextSibling;
+    // Zaten doğru konumdaysa dokunma (gereksiz animasyonu önle)
+    if (ref === el || el.nextSibling === ref) return;
+    flipReorder(hand, el, () => hand.insertBefore(el, ref));
+  }
+
+  // FLIP: diğer kartları eski->yeni konuma yumuşakça kaydır.
+  function flipReorder(container, dragged, mutate) {
+    const cards = [...container.querySelectorAll('.card')];
+    const firsts = new Map(cards.map((c) => [c, c.getBoundingClientRect()]));
+    mutate();
+    for (const c of container.querySelectorAll('.card')) {
+      if (c === dragged) continue;
+      const f = firsts.get(c);
+      if (!f) continue;
+      const l = c.getBoundingClientRect();
+      const dx = f.left - l.left, dy = f.top - l.top;
+      if (dx || dy) {
+        c.style.transition = 'none';
+        c.style.transform = `translate(${dx}px, ${dy}px)`;
+        requestAnimationFrame(() => {
+          c.style.transition = 'transform .26s cubic-bezier(.2,.9,.25,1)';
+          c.style.transform = '';
+        });
       }
     }
-    if (!placed) hand.appendChild(dragEl);
-  });
+  }
 
-  document.addEventListener('pointerup', () => {
-    if (!dragEl) return;
-    dragEl.classList.remove('lifted');
-    dragEl = null;
+  function onDragEnd(e) {
+    if (!drag || e.pointerId !== drag.pointerId) return;
+    const el = drag.el;
+    el.classList.remove('lifted');
+    el.style.transition = 'transform .22s cubic-bezier(.2,.9,.25,1)';
+    el.style.transform = ''; // yerine yumuşakça otur
+    setTimeout(() => { el.style.transition = ''; el.style.zIndex = ''; }, 240);
+    drag = null;
+    document.body.classList.remove('dragging-active');
     App.workOrder = [...$('you-hand').querySelectorAll('.card')].map((c) => c.dataset.id);
-  });
+  }
+
+  document.addEventListener('pointermove', onDragMove, { passive: false });
+  document.addEventListener('pointerup', onDragEnd);
+  document.addEventListener('pointercancel', onDragEnd);
 
   function shuffleHand() {
     if (!App.arrangeMode) return;
+    const hand = $('you-hand');
     const order = App.workOrder.slice();
     for (let i = order.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [order[i], order[j]] = [order[j], order[i]];
     }
     App.workOrder = order;
-    // DOM'u yeni sıraya göre yerleştir
-    const hand = $('you-hand');
     const map = new Map([...hand.querySelectorAll('.card')].map((c) => [c.dataset.id, c]));
-    order.forEach((id) => {
-      const el = map.get(id);
-      el.classList.remove('dealing');
-      void el.offsetWidth;
-      el.classList.add('dealing');
-      hand.appendChild(el);
-    });
+    // FLIP ile tüm kartları yeni sıraya yumuşakça kaydır
+    flipReorder(hand, null, () => order.forEach((id) => hand.appendChild(map.get(id))));
   }
 
   function confirmReady() {
@@ -335,7 +426,7 @@
       if (def !== App.you) {
         // AI savunan: elini dizip onaylar
         aiDelay(() => {
-          const order = AI.arrange(st.players[def].hand, PAPAZ);
+          const order = AI.arrange(st.players[def].hand, JOKER);
           Engine.reorderHand(st, def, order);
           Engine.confirmArrange(st, def);
           driveLocal();
@@ -436,10 +527,10 @@
   function showGameOver(view) {
     const won = view.winner === view.you;
     $('end-emoji').textContent = won ? '🏆' : '🃏';
-    $('end-title').textContent = won ? 'Kazandın!' : 'Papaz Sende Kaldı!';
+    $('end-title').textContent = won ? 'Kazandın!' : 'Joker Sende Kaldı!';
     $('end-sub').textContent = won
-      ? 'Papazı rakibe yıktın. Helal olsun! 😎'
-      : 'Kaçan papaz elinde kaldı. Bir daha dene! 😅';
+      ? "Joker'i rakibe yıktın. Helal olsun! 😎"
+      : 'Kaçan joker elinde kaldı. Bir daha dene! 😅';
     setTimeout(() => showOverlay('overlay-end', true), 700);
   }
 

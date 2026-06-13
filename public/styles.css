@@ -180,9 +180,24 @@ input[type=text]:focus { border-color: var(--neon); box-shadow: 0 0 0 3px rgba(9
 .card-face .corner { position: absolute; font-weight: 800; line-height: 1; text-align: center; }
 .card-face .corner.tl { top: 5px; left: 6px; }
 .card-face .corner.br { bottom: 5px; right: 6px; transform: rotate(180deg); }
-.card-face .corner .rk { font-size: 14px; display: block; }
-.card-face .corner .su { font-size: 12px; display: block; }
-.card-face .pip { font-size: 30px; }
+.card-face .corner .rk { font-size: clamp(10px, 2.8vw, 14px); display: block; }
+.card-face .corner .su { font-size: clamp(8px, 2.4vw, 12px); display: block; }
+
+/* Sayı kartı pip (sembol) dizilimi */
+.pip-area { position: absolute; inset: 9px 7px; }
+.pip-s {
+  position: absolute; transform: translate(-50%, -50%);
+  font-size: clamp(11px, 3.2vw, 17px); line-height: 1;
+}
+.pip-s.flip { transform: translate(-50%, -50%) rotate(180deg); }
+
+/* Figür kartları (J / Q / K) */
+.face-art {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+}
+.face-emoji { font-size: clamp(24px, 7vw, 40px); filter: drop-shadow(0 2px 4px rgba(0,0,0,.25)); }
+.face-suit { font-size: clamp(12px, 3vw, 17px); }
 
 /* Kart arkası (kapalı) */
 .card-back {
@@ -195,17 +210,33 @@ input[type=text]:focus { border-color: var(--neon); box-shadow: 0 0 0 3px rgba(9
 }
 .card-back::after { content: "♠"; font-size: 26px; color: rgba(255,255,255,.22); }
 
-/* Papaz (kaçan papaz) — sahibine özel altın vurgu */
-.card-face.papaz { background: linear-gradient(160deg, #fff7e0, #ffe9a8); box-shadow: inset 0 0 0 2px var(--gold); }
-.card-face.papaz .pip::after { content: " 👑"; }
+/* Joker — eşsiz "kaçan" kart, renkli özel tasarım */
+.card-face.joker {
+  background:
+    radial-gradient(120% 120% at 50% 0%, rgba(255,255,255,.25), transparent 60%),
+    linear-gradient(135deg, #7c3aed 0%, #db2777 48%, #f59e0b 100%);
+  color: #fff;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,.5);
+}
+.joker-fig {
+  font-size: clamp(28px, 8vw, 46px);
+  filter: drop-shadow(0 3px 6px rgba(0,0,0,.45));
+  animation: jwobble 2.4s ease-in-out infinite;
+}
+@keyframes jwobble { 0%,100% { transform: rotate(-7deg); } 50% { transform: rotate(7deg); } }
+.joker-text { font-weight: 900; letter-spacing: 2px; font-size: clamp(9px, 2.6vw, 12px); text-shadow: 0 1px 3px rgba(0,0,0,.5); margin-top: 3px; }
+.joker-corner { position: absolute; font-size: 12px; color: rgba(255,255,255,.9); }
+.joker-corner.tl { top: 5px; left: 7px; }
+.joker-corner.br { bottom: 5px; right: 7px; transform: rotate(180deg); }
 
 /* Etkileşim durumları */
 .card.selectable .card-back { cursor: pointer; }
 .card.selectable:hover { transform: translateY(-10px); }
 .card.selectable:hover .card-back { border-color: var(--neon); box-shadow: 0 0 18px rgba(94,234,212,.5); }
-.card.draggable { cursor: grab; }
-.card.dragging { opacity: .35; }
-.card.lifted { transform: translateY(-12px); box-shadow: 0 14px 28px rgba(0,0,0,.5); z-index: 5; }
+.card.draggable { cursor: grab; touch-action: none; }
+.card.lifted { box-shadow: 0 22px 44px rgba(0,0,0,.6); cursor: grabbing; }
+body.dragging-active { cursor: grabbing; }
 .card.dealing { animation: dealIn .4s ease both; }
 @keyframes dealIn { from { transform: translateY(-40px) scale(.7); opacity: 0; } to { transform: none; opacity: 1; } }
 

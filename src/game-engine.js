@@ -25,20 +25,20 @@
   const SUITS = ['S', 'H', 'D', 'C']; // Maça, Kupa, Karo, Sinek
   const RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
 
-  // Oyunda kalan tek papaz: Maça Papazı. "Kaçan papaz" budur.
-  const PAPAZ_ID = 'KS';
+  // Eşi olmayan tek kart: JOKER. "Kaçan" kart budur; kimde kalırsa kaybeder.
+  const JOKER_ID = 'JOKER';
 
   function buildDeck() {
     const deck = [];
+    // 52 standart kart: her değerden 4 adet (hepsi eşleşebilir).
     for (const rank of RANKS) {
       for (const suit of SUITS) {
-        const id = rank + suit;
-        // 4 papazdan yalnızca biri (PAPAZ_ID) destede kalır.
-        if (rank === 'K' && id !== PAPAZ_ID) continue;
-        deck.push({ id, rank, suit });
+        deck.push({ id: rank + suit, rank, suit });
       }
     }
-    return deck; // 49 kart
+    // Tek joker eklenir -> destedeki eşsiz kart.
+    deck.push({ id: JOKER_ID, rank: JOKER_ID, suit: null, joker: true });
+    return deck; // 53 kart
   }
 
   // Fisher-Yates karıştırma. İsteğe bağlı rastgele üreteç (test için).
@@ -91,7 +91,7 @@
       }),
       turn: 0,            // şu an çeken (saldıran) oyuncunun index'i
       phase: 'arrange',   // 'arrange' (savunan dizer) -> 'pick' (saldıran seçer) -> 'gameover'
-      papazId: PAPAZ_ID,
+      jokerId: JOKER_ID,
       lastEvent: null,    // animasyon/anlatım için son olay
       winner: null,
       loser: null,
@@ -101,7 +101,6 @@
     // Başlangıçta eşi olan herkes açtı. Oyunu rastgele biri başlatır.
     state.turn = (rng ? Math.floor(rng() * 2) : Math.floor(Math.random() * 2));
 
-    // Hangi oyuncunun papazı tuttuğu bilgisi (anlatım için).
     checkGameOver(state);
     return state;
   }
@@ -184,7 +183,7 @@
       defender: dIdx,
       drawn,
       pairWith,
-      wasPapaz: drawn.id === PAPAZ_ID,
+      wasJoker: drawn.id === JOKER_ID,
     };
 
     const over = checkGameOver(state);
@@ -195,7 +194,7 @@
     return { ok: true, paired, drawn, gameOver: over };
   }
 
-  // Oyun bitti mi? Toplam 1 kart kaldıysa o kart papazdır, sahibi kaybeder.
+  // Oyun bitti mi? Toplam 1 kart kaldıysa o kart joker'dir, sahibi kaybeder.
   function checkGameOver(state) {
     const total = totalCardsInPlay(state);
     if (total <= 1) {
@@ -216,7 +215,7 @@
       phase: state.phase,
       turn: state.turn,
       defender: defenderIndex(state),
-      papazId: state.papazId,
+      jokerId: state.jokerId,
       lastEvent: state.lastEvent,
       winner: state.winner,
       loser: state.loser,
@@ -240,7 +239,7 @@
   return {
     SUITS,
     RANKS,
-    PAPAZ_ID,
+    JOKER_ID,
     buildDeck,
     shuffle,
     extractPairs,
